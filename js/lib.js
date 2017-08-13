@@ -6,6 +6,12 @@ function choice(abc) {
     return abc[idx];
 }
 
+function repeat(f ,times) {
+    for (let i=0; i < times; i++) {
+        f(i);
+    }
+}
+
 const abc_36        = '0123456789abcdefghijklmnopqrstuvwxyz';
 const abc_base64    = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 const abc_nato      = [
