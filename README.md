@@ -1,3 +1,4 @@
 ## randgen
 
 - words
+- mazes

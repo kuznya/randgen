@@ -1,0 +1,19 @@
+.board
+{
+	margin :  20px;
+	height : 512px;
+	width  : 512px;
+	border : solid 1px #008;
+}
+
+.c0, .c1, .c00, .c01, .c10, .c11
+{
+    float:left;
+	width:32px;
+	height:32px;
+}
+
+.clearit
+{
+	clear:both;
+}
