@@ -12,30 +12,31 @@ const renderHeader = () => {
   writeln(out.join(' '));
 }
 
-const renderAppMono = () => {
+const renderApp = (renderCell) => {
   writeln('<div class=board>')
   const size = 16
 
   for (let j = 0; j < size; j++) {
-    for (var i = 0; i < size; i++) {
-      //n = (i+j)&1;
-      c = rand_bit()
-      write(`<div class=c${c}></div>`)
+    for (let i = 0; i < size; i++) {
+      const cell = renderCell(j, i)
+      write(cell)
     }
   }
   writeln('</div>')
 }
 
-const renderAppDuo = () => {
-  writeln('<div class=board>')
-  const size = 16
+const renderAppMono = () => {
+  renderApp( (j, i) => {
+      //const n = (i + j) & 1;
+      const c = rand_bit()
+      return `<div class=c${c}></div>`
+  })
+}
 
-  for (let j = 0; j < size; j++) {
-    for (var i = 0; i < size; i++) {
-      n = (i+j)&1;
-      c = rand_bit()
-      write(`<div class=c${c}${n}></div>`)
-    }
-  }
-  writeln('</div>')
+const renderAppDuo = () => {
+  renderApp( (j, i) => {
+      const n = (i + j) & 1;
+      const c = rand_bit()
+      return `<div class=c${c}${n}></div>`
+  })
 }
