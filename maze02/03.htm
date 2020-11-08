@@ -1,0 +1,29 @@
+<!doctype html>
+<link rel="stylesheet" href="js/app.css">
+<script src="js/kz.js"></script> 
+<script src="js/CBoard2.js"></script>
+<style>
+.board {
+    width: 784px;
+    height: 784px;
+}
+</style>
+<script>
+
+const doors = [
+  7,7,0,0,0,0,0,0,2,2,
+  2,2,2,2,2,1,1,4,4,5
+]
+
+const cfg = {
+  resX: 49,
+  resY: 49,
+  randDoor: () => choice(doors)
+}
+
+const app = new CBoard(cfg)
+app.buildMaze()
+app.buildDoors()
+app.renderBoard()
+
+</script>

@@ -47,4 +47,11 @@ function matrix_filled(rows,cols,val)
     return a;
 }
 
+function cube_filled(rows,cols,hh,val)
+{
+    var a = [];
+    for (var i=0; i<rows; i++) a[i]=matrix_filled(cols,hh,val);
+    return a;
+}
+
 //------------------------------------------------------------------------------
