@@ -41,7 +41,7 @@ CBoard.prototype.renderBlock = function (x, y) {
   write('</div>\n')
 }
 
-CBoard.prototype.renderBoardByBlocks = function (x, y) {
+CBoard.prototype.renderBoardByBlocks = function () {
   const cfg = this.cfg
   writeln('<div class=board>')
   for (let j = 0; j < cfg.resY; j += 6)
