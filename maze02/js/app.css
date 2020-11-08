@@ -1,0 +1,39 @@
+body
+{
+    margin:0;
+    padding:0;
+}
+
+.board
+{
+    margin :   20px;
+    width  :  800px;
+    height :  800px;
+    border-top : solid 1px #ccf;
+    border-left: solid 1px #ccf;
+}
+
+.c {
+    float: left;
+    width: 15px;
+    height: 15px;
+}
+
+.c0 {
+    background: #777;
+    border-right: 1px solid #000;
+    border-bottom: 1px solid #000;
+}
+
+.c1
+{
+    background: #ddf;
+    border-right:1px solid #aaa;
+    border-bottom:1px solid #aaa;
+}
+.c11
+{
+    background: url('../img/c1m1.png');
+    border-right:1px solid #aaa;
+    border-bottom:1px solid #aaa;
+}

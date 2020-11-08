@@ -1,0 +1,57 @@
+<!doctype html>
+<link rel="stylesheet" href="js/app.css">
+<script src="js/kz.js"></script>
+<script src="js/CBoard.js"></script>
+<style>
+.board {
+    margin: 10px;
+    width: 388px;
+    height: 485px;
+    /*border : solid 1px #ccf;*/
+    border-top: 1px solid #008;
+    border-left: 1px solid #008;
+}
+
+.block {
+    width   : 96px;
+    height  : 96px;
+    float   : left;
+
+    border-right:1px solid #008;
+    border-bottom:1px solid #008;
+}
+
+</style>
+<script>
+
+const cfg = {
+  resX: 24,
+  resY: 30,
+  randBit: () => Math.round(Math.random()+0.07)
+}
+
+CBoard.prototype.renderBlock = function (x, y) {
+  const a = this.board
+  write('<div class=block>\n')
+  for (let j = 0; j < 6; j++)
+    for (let i = 0; i < 6; i++) {
+      const n = a[y + j][x + i]
+      write(`<div class="c c${n}"></div>`)
+    }
+  write('</div>\n')
+}
+
+CBoard.prototype.renderBoardByBlocks = function (x, y) {
+  const cfg = this.cfg
+  writeln('<div class=board>')
+  for (let j = 0; j < cfg.resY; j += 6)
+    for (let i = 0; i < cfg.resX; i += 6)
+      this.renderBlock(i, j)
+  writeln('</div>')
+}
+
+const app = new CBoard(cfg)
+app.buildMaze()
+app.renderBoardByBlocks()
+
+</script>

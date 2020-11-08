@@ -1,0 +1,17 @@
+<!doctype html>
+<link rel="stylesheet" href="js/app.css">
+<script src="js/kz.js"></script> 
+<script src="js/CBoard.js"></script>
+<script>
+
+const cfg = {
+  resX: 50,
+  resY: 50,
+  randBit: () => Math.round(Math.random()+0.07)
+}
+
+const app = new CBoard(cfg)
+app.buildMaze()
+app.renderBoard()
+
+</script>
