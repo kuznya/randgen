@@ -1,0 +1,436 @@
+
+`****************************************
+`*                                      *
+`*              v0.10#                  *
+`*                                      *
+`****************************************
+
+`$A-,B-,D-,E-,F-,G+,I+,N+,P+,Q-,R-,S-,T-,V+,X+
+
+Uses GenLib,SysLib,Kbd;
+
+
+`$DEFINE StepOver
+`.$DEFINE TRACE
+`$DEFINE DOORS
+
+Const
+  Xmin =  0;
+  Xmax = 79;
+  Ymin =  0;
+  Ymax = 49;
+
+  NX    = 14;
+  NY    = 12;
+  dX    = 4;
+  dY    = 4;
+
+  Xlow  = 1;
+  Ylow  = 1;
+  Xhigh = Xlow -2 + NX*dX ;
+  Yhigh = Ylow -2 + NY*dY ;
+
+type
+  TScr   = array[Ymin..Ymax,Xmin..Xmax] of Word;
+  TFunc  = Func(x,y:byte):Word;
+
+Const
+
+  Elem0         = $0720;`' '
+  Elem1         = $08DB;`'#'
+  mask          = Elem0 XOR Elem1;
+
+  CurMask       = $7700;
+
+  El : array [boolean] of word = (Elem0,Elem1);
+
+  DoorChance    = 25;
+  DoorSideSet   = [1,2,4];
+  DoorImg    : Array[0..3] of Word = ( $072B,$092B,$0A2B, $0C2B);
+
+  RTabSzMax     = 20;
+  RNDTabSz      : Word =  20;
+
+  RTab : array[0..RTabSzMax-1] of Byte = (
+`     0,0,0,2,2,2,7,1,4,5
+`     0,0,0,0,2,2,7,1,4,5
+     7,7,0,0,0,0,0,0,2,2,
+     2,2,2,2,2,1,1,4,4,5
+  );
+
+Var
+  S     : TScr absolute $B800:$0000;
+  S1    : TScr;
+  X,Y   : Byte;
+  I,J   : Byte;
+  MapInfo: array[1..NX,1..NY,1..4] of Byte;
+
+`Temporary variables
+  Tmp,Tmp2 : Byte;
+  N        : Byte;
+
+
+`================= SERVICE SUBROUTINES =====================
+`----------------- CurEmul ----------------------
+Proc CurEmul;
+{
+  S[y,x]=S[y,x] XOR CurMask;
+}
+
+`----------------- CurHome ----------------------
+Proc CurHome; Assembler;`GotoXY(1,1)
+Asm
+   mov ah,2
+   xor bx,bx
+   xor dx,dx
+   int 10h
+}
+
+`--------------- --------------------------------
+Proc ClrScr; assembler;
+asm
+  mov ax,$B800
+  mov es,ax
+  mov ax,$0720
+  mov cx,4000
+  xor di,di
+  cld
+  rep stosw
+}
+
+`--------------- --------------------------------
+Proc ClrLn1; assembler;
+asm
+  mov ax,$B800
+  mov es,ax
+  mov ax,$0720
+  mov cx,80
+  xor di,di
+  cld
+  rep stosw
+}
+
+`=============== TUI 0 =====================================
+`--------------- --------------------------------
+Proc OutputS(s:string);
+{
+  CurHome;
+  ClrLn1;
+  Write(s);
+}
+
+`--------------- --------------------------------
+Func InputS(Ask:String):String;
+var
+  s : String;
+{
+  OutputS(Ask);
+  CurOn;
+  Readln(s);
+  CurOff;
+  InputS = s;
+}
+
+`--------------- --------------------------------
+Proc Message(S:String);
+{
+  OutputS(S);
+  GetKBD;
+}
+`Close  TUI 0
+
+`--------------- --------------------------------
+Function Pipe(x,y:byte):Word; Far;
+{
+  Pipe = S1[Y,X];
+  if (byte(S1[Y,X-1]==Elem1)+
+      byte(S1[Y-1,X]==Elem1)+
+      byte(S1[Y,X+1]==Elem1)+
+      byte(S1[Y+1,X]==Elem1)
+     ) >2
+  then Pipe = Elem1;
+}`Pipe
+
+Procedure step(F:TFunc);
+Var
+  i,j :byte;
+{
+  S1=S;
+  for j=Ymin+1 to Ymax-1 do
+    for i=Xmin+1 to Xmax-1 do
+      S[j,i]=F(i,j);
+}
+
+`-----------------------------------------
+procedure RoomProcess(I,J,X,Y:byte);
+var
+  ToRoom    : Bool;
+  OpenSides : Byte;
+  EmptyPlots: Byte;
+  II,JJ     : Byte;
+{
+  OpenSides = 0;
+  For II=1 to 4 do
+    inc(OpenSides,Byte(MapInfo[I,J,II]<>0));
+  EmptyPlots = 0;
+  For II=0 to dX-1-1 do
+    For JJ=0 to dY-1-1 do
+      inc(EmptyPlots,Byte(S[Y+JJ,X+II]==Elem0));
+
+  ToRoom = (OpenSides==1) OR (EmptyPlots>5);
+
+  if ToRoom then
+    For II=0 to dX-1-1 do
+      For JJ=0 to dY-1-1 do
+        S[Y+JJ,X+II]=Elem0;
+}`RoomProcess
+
+`--------------- --------------------------------
+
+procedure GenLab;
+{
+  `Field
+  For X=Xmin to Xmax do
+    For Y=Ymin to Ymax do
+      s[Y,X]=Elem1;
+
+  `----------ROOMS-----------
+  For J=1 to NY do
+    For I=1 to NX do {
+      MapInfo[I,J,1]=Let(I==1 ,0,MapInfo[I-1,J,3]);
+      MapInfo[I,J,2]=Let(J==1 ,0,MapInfo[I,J-1,4]);
+      MapInfo[I,J,3]=Let(I==NX,0,RTab[Random(RNDTabSz)]);
+      MapInfo[I,J,4]=Let(J==NY,0,RTab[Random(RNDTabSz)]);
+(*
+      Write(I:3,J:4,':');
+      For tmp=1 to 4 do write(MapInfo[I,J,tmp]:4);
+      writeln;
+*)
+    }`For I
+
+
+  `Put Rooms
+  Y=Ylow;
+  for J=1 to NY do {
+    X=Xlow;
+
+    for I=1 to NX do {
+
+      `Corner Stone
+      `s[Y-1+dY,X-1+dX]=Elem1;
+
+      `Right wall
+      N=MapInfo[I,J,3];
+      for tmp=0 to dY-1-1 do {
+        if Odd(N)
+        then
+        `$IFDEF DOORS
+          S[Y+tmp,X-1+dX] =
+            Let(MapInfo[I,J,3] in DoorSideSet,
+              Let(Chance(DoorChance),
+                DoorImg[Random(High(DoorImg)-Low(DoorImg)+1)],
+                Elem0),
+              Elem0);
+        `$ELSE
+          s[Y+tmp,X-1+dX] = Elem0;
+        `$ENDIF
+
+        `else s[Y+tmp,X-1+dX]=Elem1;
+        N = N >> 1;
+      }`for
+
+      `Bottom Wall
+      N=MapInfo[I,J,4];
+      for tmp=0 to dX-1-1 do {
+        if Odd(N)
+        then
+        `$IFDEF DOORS
+          s[Y-1+dY,X+tmp]=
+            Let(MapInfo[I,J,4] in DoorSideSet,
+              Let(Chance(DoorChance),
+                DoorImg[Random(High(DoorImg)-Low(DoorImg)+1)],
+                Elem0),
+              Elem0);
+        `$ELSE
+          s[Y-1+dY,X+tmp] = Elem0;
+        `$ENDIF
+
+        `else s[Y-1+dY,X+tmp]=Elem1;
+        N = N >> 1;
+      }`for
+
+
+    `$IFDEF TRACE
+     GetKBD;
+    `$ENDIF
+
+    `Room
+      `Horiz
+      N= MapInfo[I,J,1] OR MapInfo[I,J,3];
+      for tmp=0 to dY-1-1 do {
+        if Odd(N)
+        then for tmp2=0 to dX-1-1 do
+          s[Y+tmp,X+tmp2]=Elem0;
+`       else s[Y+tmp,X-1+dX]=Elem1;
+        N = N >> 1;
+      }`for
+
+      `Vert
+      N = MapInfo[I,J,2] OR MapInfo[I,J,4];
+      for tmp=0 to dX-1-1 do {
+        if Odd(N)
+        then for tmp2=0 to dY-1-1 do
+          s[Y+tmp2,X+tmp]=Elem0;
+`        else s[Y-1+dY,X+tmp]=Elem1;
+        N = N >> 1;
+      }`for
+
+      `$IFDEF TRACE
+      GetKBD;
+      `$ENDIF
+      RoomProcess(I,J,X,Y);
+
+      inc(X,dX);
+    }`For I
+    inc(Y,dY);
+  }`For J
+
+`$IFDEF StepOver
+ GetKBD;
+`$ENDIF
+ For N=1 to 3 do
+   Step(Pipe);
+
+}`GenLab
+
+`===============================================================
+`--------------- --------------------------------
+Proc GetFileName(var FName:String);
+{
+  S1=S;`save screen
+  FName = InputS('Input FileName :');
+  S=S1;
+}
+
+`--------------- --------------------------------
+Proc Save;
+Var
+  Name : String;
+  F    : Text;
+  i,j  : Byte;
+{
+  GetFileName(Name);
+  if Name=='' then exit;
+  Assign(F,Name);
+  Rewrite(F);
+  for j = Ymin to Ymax do {
+    for i = Xmin to Xmax do
+      Write(F,Char(S[j,i]) );
+    Writeln(F);
+  }`of For
+  Close(F);
+}`of Save
+
+
+`--------------- --------------------------------
+Proc Load;
+Var
+  Name : String;
+  F    : Text;
+  Str  : String;
+  i,j  : Byte;
+
+{
+  GetFileName(Name);
+  if Name=='' then exit;
+  Assign(F,Name);
+`$I-
+  Reset(F);
+`$I+
+  if IOResult<>0 then {
+    Message('Can''t open the file');
+    S=S1;
+    exit;
+  }`of Error process
+
+  Clrscr;
+  for j=Ymin to Ymax do {
+    if Eof(F) then break;
+    Readln(F,Str);
+    for i=Xmin to Min(Xmax,Length(Str)) do
+      S[j,i]=EL[Str[i+1]<>Space];
+  }`of For
+  Close(F);
+}`of Load
+
+`--------------- --------------------------------
+Proc LoadDist;
+Var
+  Name : String;
+  F    : Text;
+  Str  : String;
+  i,j,N  : Byte;
+
+{
+  GetFileName(Name);
+  if Name=='' then exit;
+  Assign(F,Name);
+`$I-
+  Reset(F);
+`$I+
+  if IOResult<>0 then {
+    Message('Can''t open the file');
+    S=S1;
+    exit;
+  }`of Error process
+
+  Readln(F,N);
+
+  if N<=RTabSzMax then {
+    RNDTabSz = N;
+    For i=0 to RNDTabSz-1 do
+      Read(F,RTab[i]);
+  }`if
+  Close(F);
+}`LoadDist
+
+
+`==============================================================
+Var
+  QuitF  : Bool;
+  KB     : Word;
+{{
+  Load8x8Font;
+  ClrScr;
+  CurOff;
+  QuitF = FALSE;
+  Randomize;
+
+  GenLab;
+  Repeat
+    Randomize;
+    Repeat
+      KB = GetKey;
+      Case KB of
+`Quit
+        kbESC,
+        kbAltX   : QuitF = True;
+        kbENTER  : GenLab;
+        kbF2     : Save;
+        kbF3     : Load;
+`Gen Params
+        kbAltF3  : { LoadDist; GenLab; }
+
+      else
+        Continue;
+      }`of Case KB
+      break;
+    Until FALSE;
+  Until QuitF;
+
+  Inline(
+  $b8/>$0003/
+  $cd/$10
+  );
+  CurOn;
+}}
