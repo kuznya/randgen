@@ -17,8 +17,38 @@ function CBoard(cfg) {
 
 CBoard.prototype.init = function (cfg) {
   // cfg = {resX, resY, randBit}
+  cfg.roomsY = (cfg.resX-1) / 4
+  cfg.roomsX = (cfg.resY-1) / 4
   this.cfg = cfg
-  this.board = matrix_filled(cfg.resY, cfg.resX, 0);
+  this.board = matrix_filled(cfg.resY, cfg.resX, () => 0)
+  if (cfg?.isShown) {
+    this.map = matrix_filled(cfg.roomsY, cfg.roomsX, cfg.isShown);
+  }
+}
+
+CBoard.prototype.shown = function(y, x) {
+  const
+    cfg = this.cfg,
+    map = this.map,
+    n = !y || !x ||
+      x === cfg.resX - 1 ||
+      y === cfg.resY - 1 ||
+      !((x % 4) || (y % 4))
+
+  if (n) return true
+  const
+    i = Math.floor((x-1) / 4),
+    right = !(x % 4),
+    j = Math.floor((y-1) / 4),
+    bottom = !(y % 4)
+  return map[j][i] || (right && map[j][i+1]) || (bottom && map[j+1][i])
+}
+
+CBoard.prototype.markToShow = function(y, x) {
+  const
+    i = Math.floor((x-1) / 4),
+    j = Math.floor((y-1) / 4)
+  this.map[j][i] = true;
 }
 
 CBoard.prototype.buildMaze = function() {
@@ -43,7 +73,7 @@ CBoard.prototype.buildDoors = function() {
     NY = (cfg.resY-1) / 4,
     rand_door = cfg.randDoor,
     aa = this.board,
-    a = cube_filled(NY, NX, 4, 0)
+    a = cube_filled(NY, NX, 4, () => 0)
 
   // * generate doors
   //console.log('buildDoors: gen')
@@ -146,7 +176,15 @@ CBoard.prototype.renderBoard = function() {
   for (let j = 0; j < cfg.resY; j++) {
     for (let i = 0; i < cfg.resX; i++) {
       const n = a[j][i]
-      write(`<div class="c c${n}"></div>`)
+      const cl = cfg.isShown && !this.shown(j, i) ? 'fog' : `c${n}`
+      write(`<div class="c ${cl}"></div>`)
+      // if (cfg.isShown) {
+      //   // exploration
+      //   write(`<div class="c ${cl}" onclick="app.markToShow(${j}, ${i})"></div>`)
+      // } else {
+      //   // always visiable
+      //   write(`<div class="c ${cl}"></div>`)
+      // }
     }
     writeln('')
   }
