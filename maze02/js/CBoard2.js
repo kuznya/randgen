@@ -171,13 +171,15 @@ CBoard.prototype.buildRooms = function () {
 CBoard.prototype.renderBoard = function() {
   const
     cfg = this.cfg,
-    a = this.board
-  writeln('<div class=board>')
+    a = this.board,
+    ss = []
+
+  ss.push('<div class=board>\n')
   for (let j = 0; j < cfg.resY; j++) {
     for (let i = 0; i < cfg.resX; i++) {
       const n = a[j][i]
       const cl = cfg.isShown && !this.shown(j, i) ? 'fog' : `c${n}`
-      write(`<div class="c ${cl}"></div>`)
+      ss.push(`<div class="c ${cl}"></div>`)
       // if (cfg.isShown) {
       //   // exploration
       //   write(`<div class="c ${cl}" onclick="app.markToShow(${j}, ${i})"></div>`)
@@ -186,7 +188,8 @@ CBoard.prototype.renderBoard = function() {
       //   write(`<div class="c ${cl}"></div>`)
       // }
     }
-    writeln('')
+    ss.push('\n')
   }
-  writeln('</div>')
+  ss.push('</div>\n')
+  write(ss.join(''))
 }
