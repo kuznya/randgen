@@ -32,25 +32,25 @@ function hash_toString(a)
 }
 
 //------------------------------------------------------------------------------
-function arr_filled(len,val)
+function arr_filled(len, fval)
 {
     var a = [];
-    for (var i=0; i<len; i++) a[i]=val;
+    for (var i=0; i<len; i++) a[i]=fval();
     return a;
 }
 //------------------------------------------------------------------------------
 
-function matrix_filled(rows,cols,val)
+function matrix_filled(rows,cols,fval)
 {
     var a = [];
-    for (var i=0; i<rows; i++) a[i]=arr_filled(cols,val);
+    for (var i=0; i<rows; i++) a[i]=arr_filled(cols, fval);
     return a;
 }
 
-function cube_filled(rows,cols,hh,val)
+function cube_filled(rows,cols,hh,fval)
 {
     var a = [];
-    for (var i=0; i<rows; i++) a[i]=matrix_filled(cols,hh,val);
+    for (var i=0; i<rows; i++) a[i]=matrix_filled(cols,hh,fval);
     return a;
 }
 

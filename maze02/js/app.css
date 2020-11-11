@@ -19,6 +19,12 @@ body
     height: 15px;
 }
 
+.fog {
+    background: #aaa;
+    border-right: 1px solid #bbb;
+    border-bottom: 1px solid #bbb;
+}
+
 .c0 {
     background: #777;
     border-right: 1px solid #000;

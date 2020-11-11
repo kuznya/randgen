@@ -5,7 +5,7 @@ function CBoard(cfg) {
 CBoard.prototype.init = function (cfg) {
   // cfg = {resX, resY, randBit}
   this.cfg = cfg
-  this.board = matrix_filled(cfg.resY, cfg.resX, 0);
+  this.board = matrix_filled(cfg.resY, cfg.resX, () => 0);
 }
 
 CBoard.prototype.buildMaze = function() {
