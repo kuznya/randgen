@@ -178,7 +178,7 @@ CBoard.prototype.renderBoard = function() {
   for (let j = 0; j < cfg.resY; j++) {
     for (let i = 0; i < cfg.resX; i++) {
       const n = a[j][i]
-      const cl = cfg.isShown && !this.shown(j, i) ? 'fog' : `c${n}`
+      const cl = cfg?.isShown && !this.shown(j, i) ? 'fog' : `c${n}`
       ss.push(`<div class="c ${cl}"></div>`)
       // if (cfg.isShown) {
       //   // exploration
